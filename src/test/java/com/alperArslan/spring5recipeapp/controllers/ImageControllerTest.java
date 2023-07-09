@@ -3,22 +3,31 @@ package com.alperArslan.spring5recipeapp.controllers;
 import com.alperArslan.spring5recipeapp.commands.RecipeCommand;
 import com.alperArslan.spring5recipeapp.services.ImageService;
 import com.alperArslan.spring5recipeapp.services.RecipeService;
-import org.junit.Before;
-import org.junit.Test;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@Slf4j
+@ExtendWith(MockitoExtension.class)
 public class ImageControllerTest {
     @Mock
     ImageService imageService;
@@ -26,16 +35,17 @@ public class ImageControllerTest {
     @Mock
     RecipeService recipeService;
 
+    @InjectMocks
     ImageController imageController;
 
     MockMvc mockMvc;
 
-    @Before
-    public void setUp() throws Exception {
-        MockitoAnnotations.initMocks(this);
-
-        imageController = new ImageController(imageService, recipeService);
-        mockMvc = MockMvcBuilders.standaloneSetup(imageController).build();
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(imageController)
+            .setControllerAdvice(new ControllerExceptionHandler())
+            .build();
     }
 
     @Test
@@ -98,5 +108,12 @@ public class ImageControllerTest {
 
         assertEquals(s.getBytes().length,responseBytes.length);
         assertArrayEquals(s.getBytes(),responseBytes);
+    }
+
+    @Test
+    public void testGetImageNumberFormatException() throws Exception {
+        mockMvc.perform(get("/recipe/asd/image"))
+            .andExpect(status().isBadRequest())
+            .andExpect(view().name("400error"));
     }
 }
