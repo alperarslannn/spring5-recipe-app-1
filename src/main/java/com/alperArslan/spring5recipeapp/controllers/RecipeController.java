@@ -1,11 +1,14 @@
 package com.alperArslan.spring5recipeapp.controllers;
 
 import com.alperArslan.spring5recipeapp.commands.RecipeCommand;
+import com.alperArslan.spring5recipeapp.exceptions.NotFoundException;
 import com.alperArslan.spring5recipeapp.services.RecipeService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 @Slf4j
 @Controller
@@ -52,6 +55,33 @@ public class RecipeController {
         recipeService.deleteById(id);
 
         return  "redirect:/";
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ModelAndView handleNotFound(NotFoundException exception){
+        log.error("Handling not found error");
+        log.error(exception.getMessage());
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("404error");
+        modelAndView.addObject("exception", exception);
+
+        return modelAndView;
+    }
+
+    @ExceptionHandler(NumberFormatException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ModelAndView handleNumberFormatException(NumberFormatException exception){
+        log.error("Handling Number Format exception");
+        log.error(exception.getMessage());
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("400error");
+        modelAndView.addObject("exception", exception);
+
+        return modelAndView;
+
     }
 
 }

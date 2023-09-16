@@ -2,6 +2,7 @@ package com.alperArslan.spring5recipeapp.controllers;
 
 import com.alperArslan.spring5recipeapp.commands.RecipeCommand;
 import com.alperArslan.spring5recipeapp.domain.Recipe;
+import com.alperArslan.spring5recipeapp.exceptions.NotFoundException;
 import com.alperArslan.spring5recipeapp.services.RecipeService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,27 +39,9 @@ class RecipeControllerTest {
     }
 
     @Test
-    void showById() {
-    }
-
-    @Test
-    public void getRecipe() throws Exception{
-        Recipe recipe = new Recipe();
-        recipe.setId(1L);
-
-        when(recipeService.findById(anyLong())).thenReturn(recipe);
-
-        mockMvc.perform(get("/recipe/1/show"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("recipe/show"));
-    }
-
-    @Test
     public void testGetRecipe() throws Exception {
         Recipe recipe = new Recipe();
         recipe.setId(1L);
-
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
 
         when(recipeService.findById(anyLong())).thenReturn(recipe);
 
@@ -66,6 +49,23 @@ class RecipeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(view().name("recipe/show"))
                 .andExpect(model().attributeExists("recipe"));
+    }
+
+    @Test
+    public void testGetRecipeNotFound() throws Exception {
+
+        when(recipeService.findById(anyLong())).thenThrow(NotFoundException.class);
+
+        mockMvc.perform(get("/recipe/1/show"))
+            .andExpect(status().isNotFound())
+            .andExpect(view().name("404error"));
+    }
+
+    @Test
+    public void testGetRecipeNumberFormatException() throws Exception{
+        mockMvc.perform(get("/recipe/asd/show"))
+            .andExpect(status().isBadRequest())
+            .andExpect(view().name("400error"));
     }
 
     @Test
